@@ -4,11 +4,12 @@ import "./ProfileView.css";
 
 export function ProfileView() {
   const [slugQuery, setSlugQuery] = useState("default");
-  const { profile, meetings, loading, error, saveProfile, scheduleMeeting } = useProfileController(slugQuery);
+  const { profile, meetings, calendarEvents, loading, error, saveProfile, scheduleMeeting } = useProfileController(slugQuery);
 
   const [formSlug, setFormSlug] = useState("");
   const [formName, setFormName] = useState("");
   const [formEmail, setFormEmail] = useState("");
+  const [formGoogleToken, setFormGoogleToken] = useState("");
   const [msg, setMsg] = useState("");
 
   const [guestName, setGuestName] = useState("");
@@ -16,7 +17,6 @@ export function ProfileView() {
   const [title, setTitle] = useState("");
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
-  const [googleToken, setGoogleToken] = useState("");
   const [meetMsg, setMeetMsg] = useState("");
 
   const handleSaveProfile = async (e: React.FormEvent) => {
@@ -26,10 +26,12 @@ export function ProfileView() {
       slug: formSlug,
       name: formName,
       email: formEmail,
+      googleToken: formGoogleToken.trim() || undefined,
     });
     if (res) {
-      setMsg("Perfil salvo com sucesso no Docker SQLite!");
+      setMsg("Perfil e conta Google salvos com sucesso no Docker SQLite!");
       setSlugQuery(formSlug);
+      setFormGoogleToken("");
     } else {
       setMsg("Erro ao salvar perfil.");
     }
@@ -45,7 +47,6 @@ export function ProfileView() {
       title,
       startTime,
       endTime,
-      googleToken: googleToken.trim() || undefined,
     });
     if (res) {
       setMeetMsg(`Reunião agendada! Link do Meet / Calendar: ${res.meetLink}`);
@@ -61,8 +62,8 @@ export function ProfileView() {
 
   return (
     <div className="profile-view">
-      <h1>Gerenciamento de Perfil & Google Agenda / Meet</h1>
-      <p className="subtitle">Backend Docker + SQLite com integração opcional à Google Calendar API</p>
+      <h1>Perfil, Google Calendar & Meet</h1>
+      <p className="subtitle">Vincule sua conta Google ao perfil para sincronizar agenda e gerar links reais do Meet</p>
 
       <div className="search-box">
         <label>Buscar perfil por slug:</label>
@@ -81,20 +82,20 @@ export function ProfileView() {
 
       <div className="grid-sections">
         <section className="card">
-          <h2>Perfil Atual</h2>
+          <h2>Perfil & Conta Google</h2>
           {profile ? (
             <div className="profile-info">
               <p><strong>Nome:</strong> {profile.name}</p>
               <p><strong>Slug:</strong> {profile.slug}</p>
               <p><strong>Email:</strong> {profile.email}</p>
+              <p><strong>Google Account:</strong> {profile.googleToken ? "🔗 Vinculado (Token ativo)" : "⚠️ Não vinculado"}</p>
               <p><strong>Horário:</strong> {profile.startHour} às {profile.endHour}</p>
-              <p><strong>Duração slot:</strong> {profile.slotDurationMinutes} min</p>
             </div>
           ) : (
             <p>Nenhum perfil encontrado para "{slugQuery}". Crie abaixo.</p>
           )}
 
-          <h3>Criar / Atualizar Perfil</h3>
+          <h3>Criar / Atualizar Perfil & Token Google</h3>
           <form onSubmit={handleSaveProfile} className="form">
             <input
               type="text"
@@ -117,13 +118,43 @@ export function ProfileView() {
               onChange={(e) => setFormEmail(e.target.value)}
               required
             />
+            <input
+              type="password"
+              placeholder="Google OAuth Access Token"
+              value={formGoogleToken}
+              onChange={(e) => setFormGoogleToken(e.target.value)}
+            />
             <button type="submit" className="btn">Salvar Perfil</button>
             {msg && <span className="msg">{msg}</span>}
           </form>
+
+          {profile && profile.googleToken && (
+            <div className="calendar-events-box">
+              <h3>📅 Eventos do Google Calendar ({calendarEvents.length})</h3>
+              <ul className="meetings-list">
+                {calendarEvents.length === 0 ? (
+                  <p>Nenhum evento futuro encontrado no calendário.</p>
+                ) : (
+                  calendarEvents.map((ev) => (
+                    <li key={ev.id}>
+                      <strong>{ev.summary || "Sem título"}</strong>
+                      <br />
+                      <span>{new Date(ev.start.dateTime || ev.start.date || "").toLocaleString()}</span>
+                      {ev.hangoutLink && (
+                        <div>
+                          <a href={ev.hangoutLink} target="_blank" rel="noreferrer">🔗 Abrir Google Meet</a>
+                        </div>
+                      )}
+                    </li>
+                  ))
+                )}
+              </ul>
+            </div>
+          )}
         </section>
 
         <section className="card">
-          <h2>Agendar Reunião (Google Meet / Calendar)</h2>
+          <h2>Agendar Reunião</h2>
           {profile ? (
             <form onSubmit={handleSchedule} className="form">
               <input
@@ -167,20 +198,14 @@ export function ProfileView() {
                   />
                 </div>
               </div>
-              <input
-                type="password"
-                placeholder="Google OAuth Access Token (opcional para Meet real)"
-                value={googleToken}
-                onChange={(e) => setGoogleToken(e.target.value)}
-              />
-              <button type="submit" className="btn">Agendar Reunião</button>
+              <button type="submit" className="btn">Agendar e Gerar Meet</button>
               {meetMsg && <p className="meet-msg">{meetMsg}</p>}
             </form>
           ) : (
             <p>Selecione ou crie um perfil válido acima para agendar reuniões.</p>
           )}
 
-          <h3>Reuniões Confirmadas ({meetings.length})</h3>
+          <h3>Reuniões Agendadas no Yourself ({meetings.length})</h3>
           <ul className="meetings-list">
             {meetings.map((m) => (
               <li key={m.id}>

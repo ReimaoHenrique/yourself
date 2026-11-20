@@ -1,7 +1,7 @@
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { DatabaseSync } from 'node:sqlite';
-import http from 'node:http';
+import { serve } from '@hono/node-server';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -14,7 +14,7 @@ if (!fs.existsSync(dataDir)) {
 const dbPath = path.join(dataDir, 'database.sqlite');
 const db = new DatabaseSync(dbPath);
 
-// Inicializar banco de dados SQLite
+// Inicializar banco de dados SQLite com suporte a google_token
 db.exec(`
   CREATE TABLE IF NOT EXISTS profiles (
       id TEXT PRIMARY KEY,
@@ -26,6 +26,7 @@ db.exec(`
       work_days TEXT DEFAULT '1,2,3,4,5',
       start_hour TEXT DEFAULT '09:00:00',
       end_hour TEXT DEFAULT '18:00:00',
+      google_token TEXT,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   );
 
@@ -45,6 +46,10 @@ db.exec(`
   );
 `);
 
+try {
+  db.exec(`ALTER TABLE profiles ADD COLUMN google_token TEXT;`);
+} catch {}
+
 const app = new Hono();
 
 app.use('/*', cors());
@@ -55,7 +60,7 @@ app.get('/health', (c) => c.json({ status: 'ok' }));
 app.get('/profiles/:slug', (c) => {
   const slug = c.req.param('slug');
   const stmt = db.prepare(`
-    SELECT id, slug, name, timezone, slot_duration_minutes, work_days, start_hour, end_hour 
+    SELECT id, slug, name, timezone, slot_duration_minutes, work_days, start_hour, end_hour, google_token, email
     FROM profiles WHERE slug = ? LIMIT 1
   `);
   const profile = stmt.get(slug);
@@ -66,7 +71,7 @@ app.get('/profiles/:slug', (c) => {
   return c.json(profile);
 });
 
-// Criar ou atualizar perfil e horários
+// Criar ou atualizar perfil e horários com conta Google
 app.post('/profiles', async (c) => {
   try {
     const body = await c.req.json();
@@ -79,10 +84,11 @@ app.post('/profiles', async (c) => {
     const end_hour = body.end_hour || '18:00';
     const timezone = body.timezone || 'America/Bahia';
     const work_days = Array.isArray(body.work_days) ? body.work_days.join(',') : (body.work_days || '1,2,3,4,5');
+    const google_token = body.google_token || body.googleToken || null;
 
     const upsertStmt = db.prepare(`
-      INSERT INTO profiles (id, slug, name, email, timezone, slot_duration_minutes, work_days, start_hour, end_hour)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO profiles (id, slug, name, email, timezone, slot_duration_minutes, work_days, start_hour, end_hour, google_token)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       ON CONFLICT(email) DO UPDATE SET
         slug = excluded.slug,
         name = excluded.name,
@@ -90,13 +96,46 @@ app.post('/profiles', async (c) => {
         work_days = excluded.work_days,
         start_hour = excluded.start_hour,
         end_hour = excluded.end_hour,
-        timezone = excluded.timezone
+        timezone = excluded.timezone,
+        google_token = COALESCE(excluded.google_token, profiles.google_token)
       RETURNING *
     `);
-    const profile = upsertStmt.get(id, slug, name, email, timezone, slot_duration_minutes, work_days, start_hour, end_hour);
+    const profile = upsertStmt.get(id, slug, name, email, timezone, slot_duration_minutes, work_days, start_hour, end_hour, google_token);
     return c.json(profile, 201);
   } catch (err: any) {
     return c.json({ error: err.message || 'Erro ao salvar perfil' }, 500);
+  }
+});
+
+// Buscar eventos do Google Calendar para um perfil vinculado
+app.get('/profiles/:id/calendar-events', async (c) => {
+  const profileId = c.req.param('id');
+  const stmt = db.prepare(`SELECT google_token FROM profiles WHERE id = ? LIMIT 1`);
+  const profile: any = stmt.get(profileId);
+
+  if (!profile || !profile.google_token) {
+    return c.json({ error: 'Conta Google não vinculada a este perfil.' }, 400);
+  }
+
+  try {
+    const now = new Date().toISOString();
+    const calRes = await fetch(
+      `https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin=${now}&singleEvents=true&orderBy=startTime`,
+      {
+        headers: {
+          'Authorization': `Bearer ${profile.google_token}`,
+        },
+      }
+    );
+
+    if (!calRes.ok) {
+      return c.json({ error: 'Falha ao autenticar com o Google Calendar. Verifique o token.' }, 401);
+    }
+
+    const data: any = await calRes.json();
+    return c.json(data.items || []);
+  } catch (err: any) {
+    return c.json({ error: err.message || 'Erro ao buscar eventos do Google Calendar' }, 500);
   }
 });
 
@@ -127,9 +166,19 @@ app.post('/meetings', async (c) => {
     const body = await c.req.json();
     const id = crypto.randomUUID();
     let meetLink = '';
-    const googleToken = body.googleToken || process.env.GOOGLE_ACCESS_TOKEN;
+    
+    let googleToken = body.googleToken;
+    if (!googleToken && body.host_id) {
+      const pStmt = db.prepare(`SELECT google_token FROM profiles WHERE id = ? LIMIT 1`);
+      const p: any = pStmt.get(body.host_id);
+      if (p && p.google_token) {
+        googleToken = p.google_token;
+      }
+    }
+    if (!googleToken) {
+      googleToken = process.env.GOOGLE_ACCESS_TOKEN;
+    }
 
-    // Tentar criar evento real no Google Calendar com Google Meet (`conferenceData`)
     if (googleToken) {
       try {
         const calRes = await fetch(
@@ -165,7 +214,6 @@ app.post('/meetings', async (c) => {
       }
     }
 
-    // Fallback se token não foi fornecido ou se a chamada falhou
     if (!meetLink) {
       meetLink = generateMeetCode();
     }
@@ -197,8 +245,13 @@ app.post('/meetings', async (c) => {
 });
 
 const port = Number(process.env.PORT || 8787);
-const server = http.createServer((req, res) => app.fetch(req));
 
-server.listen(port, () => {
-  console.log(`🚀 Backend service running on http://localhost:${port}`);
-});
+serve(
+  {
+    fetch: app.fetch,
+    port,
+  },
+  (info) => {
+    console.log(`🚀 Backend service running on http://localhost:${info.port}`);
+  }
+);

@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { profileService } from "../services";
-import type { Profile, Meeting, CreateProfileDTO, CreateMeetingDTO } from "../models";
+import type { Profile, Meeting, CalendarEvent, CreateProfileDTO, CreateMeetingDTO } from "../models";
 
 export function useProfileController(slug: string = "default") {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [meetings, setMeetings] = useState<Meeting[]>([]);
+  const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -15,8 +16,12 @@ export function useProfileController(slug: string = "default") {
       const p = await profileService.getProfile(slug);
       setProfile(p);
       if (p) {
-        const m = await profileService.getMeetings(p.id);
+        const [m, events] = await Promise.all([
+          profileService.getMeetings(p.id),
+          profileService.getCalendarEvents(p.id).catch(() => []),
+        ]);
         setMeetings(m);
+        setCalendarEvents(events);
       }
     } catch (err: any) {
       setError(err.message || "Erro ao carregar dados do backend Docker");
@@ -49,6 +54,7 @@ export function useProfileController(slug: string = "default") {
   return {
     profile,
     meetings,
+    calendarEvents,
     loading,
     error,
     saveProfile,

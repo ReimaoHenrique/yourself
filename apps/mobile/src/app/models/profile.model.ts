@@ -8,6 +8,7 @@ export interface Profile {
   workDays: string;
   startHour: string;
   endHour: string;
+  googleToken?: string;
   createdAt?: string;
 }
 
@@ -20,6 +21,7 @@ export interface CreateProfileDTO {
   endHour?: string;
   timezone?: string;
   workDays?: string;
+  googleToken?: string;
 }
 
 export interface Meeting {
@@ -43,4 +45,13 @@ export interface CreateMeetingDTO {
   startTime: string;
   endTime: string;
   googleToken?: string;
+}
+
+export interface CalendarEvent {
+  id: string;
+  summary: string;
+  start: { dateTime?: string; date?: string };
+  end: { dateTime?: string; date?: string };
+  hangoutLink?: string;
+  htmlLink?: string;
 }

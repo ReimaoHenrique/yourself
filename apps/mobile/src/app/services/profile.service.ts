@@ -1,4 +1,4 @@
-import type { Profile, CreateProfileDTO, Meeting, CreateMeetingDTO } from "../models";
+import type { Profile, CreateProfileDTO, Meeting, CreateMeetingDTO, CalendarEvent } from "../models";
 
 const API_URL = "http://localhost:8787";
 
@@ -24,6 +24,16 @@ class ProfileService {
       return await res.json();
     } catch {
       return null;
+    }
+  }
+
+  async getCalendarEvents(profileId: string): Promise<CalendarEvent[]> {
+    try {
+      const res = await fetch(`${API_URL}/profiles/${profileId}/calendar-events`);
+      if (!res.ok) return [];
+      return await res.json();
+    } catch {
+      return [];
     }
   }
 

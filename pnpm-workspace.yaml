@@ -1,0 +1,9 @@
+packages:
+  - 'apps/*'
+  - 'services/*'
+allowBuilds:
+  '*': true
+  esbuild: true
+  esbuild,sharp,workerd: true
+  sharp: true
+  workerd: true

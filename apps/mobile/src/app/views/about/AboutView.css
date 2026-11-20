@@ -1,0 +1,40 @@
+.about-view {
+  text-align: left;
+}
+
+.about-view .layers {
+  list-style: none;
+  padding: 0;
+  margin: 24px 0;
+  display: grid;
+  gap: 12px;
+}
+
+.about-view .layers li {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-left: 3px solid #24c8db;
+  border-radius: 10px;
+  padding: 12px 16px;
+}
+
+.about-view .layer {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #24c8db;
+  margin-bottom: 4px;
+}
+
+.about-view .layers code {
+  display: block;
+  opacity: 0.75;
+  margin-bottom: 4px;
+}
+
+.about-view .layers p {
+  margin: 0;
+  opacity: 0.85;
+}

@@ -61,6 +61,42 @@ mise x -- pnpm tauri android dev    # roda no emulador/dispositivo
 mise x -- pnpm tauri android build  # gera o APK/AAB
 ```
 
+### Uso de aplicativos (Android)
+
+O plugin Kotlin `UsagePlugin` (`src-tauri/gen/android/app/src/main/java/.../UsagePlugin.kt`)
+lê o `UsageStatsManager` e é registrado pelo plugin Rust `usage` em `src-tauri/src/lib.rs`.
+Fluxo: `UsageView` → `useUsageController` → `usageService` → comandos
+`check_usage_permission` / `request_usage_permission` / `get_all_app_usage` /
+`get_app_usage` → Kotlin.
+
+A permissão `PACKAGE_USAGE_STATS` é especial (protegida): o Android **nunca**
+mostra diálogo de concessão para ela, mesmo estando declarada no
+`AndroidManifest.xml`. O usuário precisa ligar o toggle manualmente em
+**Configurações → Apps → Acesso aos dados de uso**. O app mostra o estado
+"pendente", abre essa tela com `Settings.ACTION_USAGE_ACCESS_SETTINGS` e
+verifica novamente ao voltar. No desktop os comandos retornam erro informativo.
+
+Os tempos são milissegundos: total no período, hoje, últimos 7 dias e última
+utilização. Ícones voltam como data URI PNG em `iconBase64`.
+
+### Erro "Página web não disponível" no celular físico
+
+Se o firewall da máquina bloquear conexões do celular para o IP da rede (o
+`tauri android dev` troca o `devUrl` para esse IP por padrão), use o tunelamento
+`adb reverse` do próprio CLI:
+
+```sh
+mise x -- pnpm tauri android dev --host 127.0.0.1
+```
+
+Isso faz o Vite escutar em `127.0.0.1:1420` e o WebView carregar
+`http://127.0.0.1:1420`, que o CLI encaminha via `adb reverse tcp:1420 tcp:1420`.
+Para o hot reload funcionar, encaminhe também a porta do HMR:
+
+```sh
+adb reverse tcp:1421 tcp:1421
+```
+
 ### Emulador
 
 ```sh

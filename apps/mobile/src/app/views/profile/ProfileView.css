@@ -1,10 +1,10 @@
-.profile-view {
+.profile-page {
   padding: 24px;
   max-width: 1000px;
   margin: 0 auto;
 }
 
-.profile-view h1 {
+.profile-page h1 {
   font-size: 24px;
   margin-bottom: 4px;
   color: #24c8db;
@@ -21,6 +21,7 @@
   padding: 16px;
   border-radius: 8px;
   margin-bottom: 24px;
+  border: 1px solid #333;
 }
 
 .search-box label {
@@ -42,7 +43,7 @@
   box-sizing: border-box;
 }
 
-.grid-sections {
+.profile-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 24px;
@@ -60,36 +61,69 @@
   margin-bottom: 16px;
   border-bottom: 1px solid #333;
   padding-bottom: 8px;
+  color: #fff;
 }
 
 .card h3 {
-  font-size: 16px;
+  font-size: 15px;
   margin-top: 20px;
   margin-bottom: 12px;
+  color: #24c8db;
 }
 
-.profile-info p {
-  margin: 6px 0;
+.profile-details {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.info-item {
+  display: flex;
+  justify-content: space-between;
+  background: #252525;
+  padding: 10px 14px;
+  border-radius: 6px;
   font-size: 14px;
+}
+
+.info-item .label {
+  color: #aaa;
+}
+
+.info-item .value {
+  color: #fff;
+  font-weight: 500;
+}
+
+.info-item .value.connected {
+  color: #2ecc71;
+}
+
+.info-item .value.disconnected {
+  color: #e74c3c;
 }
 
 .form {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
 }
 
-.row-inputs {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
-.row-inputs label {
-  font-size: 12px;
-  color: #aaa;
-  display: block;
-  margin-bottom: 4px;
+.form-group label {
+  font-size: 13px;
+  color: #ccc;
+}
+
+.help-text {
+  font-size: 11px;
+  color: #777;
 }
 
 .btn {
@@ -101,13 +135,14 @@
   border-radius: 6px;
   cursor: pointer;
   transition: opacity 0.2s;
+  margin-top: 6px;
 }
 
 .btn:hover {
   opacity: 0.9;
 }
 
-.msg, .meet-msg {
+.msg {
   font-size: 13px;
   color: #24c8db;
   margin-top: 4px;
@@ -117,27 +152,46 @@
   color: #ff6b6b;
 }
 
-.meetings-list {
+.calendar-sync-section {
+  margin-top: 20px;
+  border-top: 1px solid #333;
+  padding-top: 16px;
+}
+
+.events-list {
   list-style: none;
   padding: 0;
-  max-height: 200px;
+  max-height: 250px;
   overflow-y: auto;
 }
 
-.meetings-list li {
+.events-list li {
   background: #252525;
-  padding: 10px;
+  padding: 12px;
   border-radius: 6px;
   margin-bottom: 8px;
   font-size: 13px;
 }
 
-.meetings-list a {
+.events-list li strong {
+  display: block;
+  margin-bottom: 4px;
+  color: #fff;
+}
+
+.events-list li span {
+  color: #888;
+  font-size: 12px;
+}
+
+.events-list li a {
+  display: inline-block;
+  margin-top: 6px;
   color: #24c8db;
   text-decoration: none;
   font-size: 12px;
 }
 
-.meetings-list a:hover {
+.events-list li a:hover {
   text-decoration: underline;
 }

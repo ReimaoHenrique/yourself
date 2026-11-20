@@ -7,6 +7,7 @@ export const routes = {
   tasks: "/tasks",
   usage: "/usage",
   profile: "/profile",
+  meetings: "/meetings",
   about: "/about",
 } as const;
 

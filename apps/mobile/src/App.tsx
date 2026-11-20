@@ -6,7 +6,8 @@ const NAV = [
   { to: routes.home, label: "Início", end: true },
   { to: routes.tasks, label: "Tarefas", end: false },
   { to: routes.usage, label: "Uso de apps", end: false },
-  { to: routes.profile, label: "Perfil & Reuniões", end: false },
+  { to: routes.profile, label: "Perfil", end: false },
+  { to: routes.meetings, label: "Reuniões", end: false },
   { to: routes.about, label: "Arquitetura", end: false },
 ];
 

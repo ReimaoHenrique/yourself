@@ -1,0 +1,73 @@
+.meetings-page {
+  padding: 24px;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.meetings-page h1 {
+  font-size: 24px;
+  margin-bottom: 4px;
+  color: #24c8db;
+}
+
+.meetings-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+.meetings-list {
+  list-style: none;
+  padding: 0;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.meetings-list li {
+  background: #252525;
+  padding: 14px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  font-size: 13px;
+}
+
+.meetings-list li strong {
+  display: block;
+  font-size: 15px;
+  margin-bottom: 4px;
+  color: #fff;
+}
+
+.meetings-list li p {
+  color: #aaa;
+  margin: 2px 0;
+}
+
+.meetings-list li span {
+  color: #777;
+  font-size: 12px;
+}
+
+.meet-link-box {
+  margin-top: 8px;
+  background: #1a1a1a;
+  padding: 8px;
+  border-radius: 6px;
+}
+
+.meet-link-box a {
+  color: #24c8db;
+  text-decoration: none;
+  font-size: 13px;
+  word-break: break-all;
+}
+
+.meet-link-box a:hover {
+  text-decoration: underline;
+}
+
+.row-inputs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}

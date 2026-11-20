@@ -4,20 +4,13 @@ import "./ProfileView.css";
 
 export function ProfileView() {
   const [slugQuery, setSlugQuery] = useState("default");
-  const { profile, meetings, calendarEvents, loading, error, saveProfile, scheduleMeeting } = useProfileController(slugQuery);
+  const { profile, calendarEvents, loading, error, saveProfile } = useProfileController(slugQuery);
 
   const [formSlug, setFormSlug] = useState("");
   const [formName, setFormName] = useState("");
   const [formEmail, setFormEmail] = useState("");
   const [formGoogleToken, setFormGoogleToken] = useState("");
   const [msg, setMsg] = useState("");
-
-  const [guestName, setGuestName] = useState("");
-  const [guestEmail, setGuestEmail] = useState("");
-  const [title, setTitle] = useState("");
-  const [startTime, setStartTime] = useState("");
-  const [endTime, setEndTime] = useState("");
-  const [meetMsg, setMeetMsg] = useState("");
 
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,7 +22,7 @@ export function ProfileView() {
       googleToken: formGoogleToken.trim() || undefined,
     });
     if (res) {
-      setMsg("Perfil e conta Google salvos com sucesso no Docker SQLite!");
+      setMsg("Perfil e informações Google salvos com sucesso no Docker SQLite!");
       setSlugQuery(formSlug);
       setFormGoogleToken("");
     } else {
@@ -37,33 +30,10 @@ export function ProfileView() {
     }
   };
 
-  const handleSchedule = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!profile || !guestName || !guestEmail || !title || !startTime || !endTime) return;
-    const res = await scheduleMeeting({
-      hostId: profile.id,
-      guestName,
-      guestEmail,
-      title,
-      startTime,
-      endTime,
-    });
-    if (res) {
-      setMeetMsg(`Reunião agendada! Link do Meet / Calendar: ${res.meetLink}`);
-      setGuestName("");
-      setGuestEmail("");
-      setTitle("");
-      setStartTime("");
-      setEndTime("");
-    } else {
-      setMeetMsg("Erro ao agendar reunião (horário pode estar ocupado).");
-    }
-  };
-
   return (
-    <div className="profile-view">
-      <h1>Perfil, Google Calendar & Meet</h1>
-      <p className="subtitle">Vincule sua conta Google ao perfil para sincronizar agenda e gerar links reais do Meet</p>
+    <div className="profile-page">
+      <h1>Meu Perfil & Conta Google</h1>
+      <p className="subtitle">Gerencie seu perfil, email e informações de integração com o Google Calendar</p>
 
       <div className="search-box">
         <label>Buscar perfil por slug:</label>
@@ -80,70 +50,51 @@ export function ProfileView() {
       {loading && <p>Carregando...</p>}
       {error && <p className="error">{error}</p>}
 
-      <div className="grid-sections">
+      <div className="profile-grid">
         <section className="card">
-          <h2>Perfil & Conta Google</h2>
+          <h2>Informações do Perfil</h2>
           {profile ? (
-            <div className="profile-info">
-              <p><strong>Nome:</strong> {profile.name}</p>
-              <p><strong>Slug:</strong> {profile.slug}</p>
-              <p><strong>Email:</strong> {profile.email}</p>
-              <p><strong>Google Account:</strong> {profile.googleToken ? "🔗 Vinculado (Token ativo)" : "⚠️ Não vinculado"}</p>
-              <p><strong>Horário:</strong> {profile.startHour} às {profile.endHour}</p>
+            <div className="profile-details">
+              <div className="info-item">
+                <span className="label">Nome:</span>
+                <span className="value">{profile.name}</span>
+              </div>
+              <div className="info-item">
+                <span className="label">Slug:</span>
+                <span className="value">{profile.slug}</span>
+              </div>
+              <div className="info-item">
+                <span className="label">Email:</span>
+                <span className="value">{profile.email}</span>
+              </div>
+              <div className="info-item">
+                <span className="label">Horário de Trabalho:</span>
+                <span className="value">{profile.startHour} às {profile.endHour}</span>
+              </div>
+              <div className="info-item">
+                <span className="label">Status Google:</span>
+                <span className={`value ${profile.googleToken ? "connected" : "disconnected"}`}>
+                  {profile.googleToken ? "🔗 Conta Google Vinculada" : "⚠️ Não vinculado"}
+                </span>
+              </div>
             </div>
           ) : (
-            <p>Nenhum perfil encontrado para "{slugQuery}". Crie abaixo.</p>
+            <p>Nenhum perfil encontrado para "{slugQuery}". Preencha o formulário ao lado para criar.</p>
           )}
 
-          <h3>Criar / Atualizar Perfil & Token Google</h3>
-          <form onSubmit={handleSaveProfile} className="form">
-            <input
-              type="text"
-              placeholder="Slug (ex: joao)"
-              value={formSlug}
-              onChange={(e) => setFormSlug(e.target.value)}
-              required
-            />
-            <input
-              type="text"
-              placeholder="Nome"
-              value={formName}
-              onChange={(e) => setFormName(e.target.value)}
-              required
-            />
-            <input
-              type="email"
-              placeholder="Email"
-              value={formEmail}
-              onChange={(e) => setFormEmail(e.target.value)}
-              required
-            />
-            <input
-              type="password"
-              placeholder="Google OAuth Access Token"
-              value={formGoogleToken}
-              onChange={(e) => setFormGoogleToken(e.target.value)}
-            />
-            <button type="submit" className="btn">Salvar Perfil</button>
-            {msg && <span className="msg">{msg}</span>}
-          </form>
-
           {profile && profile.googleToken && (
-            <div className="calendar-events-box">
-              <h3>📅 Eventos do Google Calendar ({calendarEvents.length})</h3>
-              <ul className="meetings-list">
+            <div className="calendar-sync-section">
+              <h3>📅 Eventos Sincronizados do Google Calendar ({calendarEvents.length})</h3>
+              <ul className="events-list">
                 {calendarEvents.length === 0 ? (
-                  <p>Nenhum evento futuro encontrado no calendário.</p>
+                  <p>Nenhum evento futuro encontrado.</p>
                 ) : (
                   calendarEvents.map((ev) => (
                     <li key={ev.id}>
                       <strong>{ev.summary || "Sem título"}</strong>
-                      <br />
                       <span>{new Date(ev.start.dateTime || ev.start.date || "").toLocaleString()}</span>
                       {ev.hangoutLink && (
-                        <div>
-                          <a href={ev.hangoutLink} target="_blank" rel="noreferrer">🔗 Abrir Google Meet</a>
-                        </div>
+                        <a href={ev.hangoutLink} target="_blank" rel="noreferrer">🔗 Google Meet</a>
                       )}
                     </li>
                   ))
@@ -154,67 +105,51 @@ export function ProfileView() {
         </section>
 
         <section className="card">
-          <h2>Agendar Reunião</h2>
-          {profile ? (
-            <form onSubmit={handleSchedule} className="form">
+          <h2>Criar / Atualizar Perfil & Google Account</h2>
+          <form onSubmit={handleSaveProfile} className="form">
+            <div className="form-group">
+              <label>Slug (Identificador URL):</label>
               <input
                 type="text"
-                placeholder="Título da Reunião"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Ex: joao"
+                value={formSlug}
+                onChange={(e) => setFormSlug(e.target.value)}
                 required
               />
+            </div>
+            <div className="form-group">
+              <label>Nome Completo:</label>
               <input
                 type="text"
-                placeholder="Nome do Convidado"
-                value={guestName}
-                onChange={(e) => setGuestName(e.target.value)}
+                placeholder="Ex: João Silva"
+                value={formName}
+                onChange={(e) => setFormName(e.target.value)}
                 required
               />
+            </div>
+            <div className="form-group">
+              <label>Email:</label>
               <input
                 type="email"
-                placeholder="Email do Convidado"
-                value={guestEmail}
-                onChange={(e) => setGuestEmail(e.target.value)}
+                placeholder="Ex: joao@email.com"
+                value={formEmail}
+                onChange={(e) => setFormEmail(e.target.value)}
                 required
               />
-              <div className="row-inputs">
-                <div>
-                  <label>Início:</label>
-                  <input
-                    type="datetime-local"
-                    value={startTime}
-                    onChange={(e) => setStartTime(e.target.value)}
-                    required
-                  />
-                </div>
-                <div>
-                  <label>Fim:</label>
-                  <input
-                    type="datetime-local"
-                    value={endTime}
-                    onChange={(e) => setEndTime(e.target.value)}
-                    required
-                  />
-                </div>
-              </div>
-              <button type="submit" className="btn">Agendar e Gerar Meet</button>
-              {meetMsg && <p className="meet-msg">{meetMsg}</p>}
-            </form>
-          ) : (
-            <p>Selecione ou crie um perfil válido acima para agendar reuniões.</p>
-          )}
-
-          <h3>Reuniões Agendadas no Yourself ({meetings.length})</h3>
-          <ul className="meetings-list">
-            {meetings.map((m) => (
-              <li key={m.id}>
-                <strong>{m.title}</strong> — {m.guestName} ({new Date(m.startTime).toLocaleString()})
-                <br />
-                <a href={m.meetLink} target="_blank" rel="noreferrer">🔗 {m.meetLink}</a>
-              </li>
-            ))}
-          </ul>
+            </div>
+            <div className="form-group">
+              <label>Google OAuth Access Token:</label>
+              <input
+                type="password"
+                placeholder="Cole seu token de acesso Google"
+                value={formGoogleToken}
+                onChange={(e) => setFormGoogleToken(e.target.value)}
+              />
+              <small className="help-text">Permite buscar informações do seu Google Calendar e criar links oficiais do Meet.</small>
+            </div>
+            <button type="submit" className="btn">Salvar Perfil</button>
+            {msg && <span className="msg">{msg}</span>}
+          </form>
         </section>
       </div>
     </div>

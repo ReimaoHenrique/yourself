@@ -42,4 +42,5 @@ export interface CreateMeetingDTO {
   title: string;
   startTime: string;
   endTime: string;
+  googleToken?: string;
 }

@@ -16,6 +16,7 @@ export function ProfileView() {
   const [title, setTitle] = useState("");
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
+  const [googleToken, setGoogleToken] = useState("");
   const [meetMsg, setMeetMsg] = useState("");
 
   const handleSaveProfile = async (e: React.FormEvent) => {
@@ -44,9 +45,10 @@ export function ProfileView() {
       title,
       startTime,
       endTime,
+      googleToken: googleToken.trim() || undefined,
     });
     if (res) {
-      setMeetMsg(`Reunião agendada! Link do Meet: ${res.meetLink}`);
+      setMeetMsg(`Reunião agendada! Link do Meet / Calendar: ${res.meetLink}`);
       setGuestName("");
       setGuestEmail("");
       setTitle("");
@@ -59,8 +61,8 @@ export function ProfileView() {
 
   return (
     <div className="profile-view">
-      <h1>Gerenciamento de Perfil & Reuniões (Docker + SQLite)</h1>
-      <p className="subtitle">Conectado ao backend Hono na porta 8787</p>
+      <h1>Gerenciamento de Perfil & Google Agenda / Meet</h1>
+      <p className="subtitle">Backend Docker + SQLite com integração opcional à Google Calendar API</p>
 
       <div className="search-box">
         <label>Buscar perfil por slug:</label>
@@ -121,7 +123,7 @@ export function ProfileView() {
         </section>
 
         <section className="card">
-          <h2>Agendar Reunião</h2>
+          <h2>Agendar Reunião (Google Meet / Calendar)</h2>
           {profile ? (
             <form onSubmit={handleSchedule} className="form">
               <input
@@ -165,7 +167,13 @@ export function ProfileView() {
                   />
                 </div>
               </div>
-              <button type="submit" className="btn">Agendar e Gerar Meet</button>
+              <input
+                type="password"
+                placeholder="Google OAuth Access Token (opcional para Meet real)"
+                value={googleToken}
+                onChange={(e) => setGoogleToken(e.target.value)}
+              />
+              <button type="submit" className="btn">Agendar Reunião</button>
               {meetMsg && <p className="meet-msg">{meetMsg}</p>}
             </form>
           ) : (

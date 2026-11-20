@@ -121,12 +121,54 @@ app.get('/meetings/:hostId', (c) => {
   return c.json(meetings);
 });
 
-// Agendar nova reunião e gerar link
+// Agendar nova reunião com integração Google Calendar & Google Meet (e fallback simulado)
 app.post('/meetings', async (c) => {
   try {
     const body = await c.req.json();
     const id = crypto.randomUUID();
-    const meetLink = generateMeetCode();
+    let meetLink = '';
+    const googleToken = body.googleToken || process.env.GOOGLE_ACCESS_TOKEN;
+
+    // Tentar criar evento real no Google Calendar com Google Meet (`conferenceData`)
+    if (googleToken) {
+      try {
+        const calRes = await fetch(
+          'https://www.googleapis.com/calendar/v3/calendars/primary/events?conferenceDataVersion=1',
+          {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${googleToken}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              summary: body.title,
+              description: `Reunião agendada por ${body.guestName} (${body.guestEmail}) via Yourself`,
+              start: { dateTime: body.startTime },
+              end: { dateTime: body.endTime },
+              attendees: [{ email: body.guestEmail }],
+              conferenceData: {
+                createRequest: {
+                  requestId: crypto.randomUUID(),
+                  conferenceSolutionKey: { type: 'hangoutsMeet' },
+                },
+              },
+            }),
+          }
+        );
+
+        if (calRes.ok) {
+          const calData: any = await calRes.json();
+          meetLink = calData.hangoutLink || calData.htmlLink || '';
+        }
+      } catch (err) {
+        console.warn('Aviso: Falha na API do Google Calendar, usando link simulado.', err);
+      }
+    }
+
+    // Fallback se token não foi fornecido ou se a chamada falhou
+    if (!meetLink) {
+      meetLink = generateMeetCode();
+    }
 
     const stmt = db.prepare(`
       INSERT INTO meetings (id, host_id, guest_name, guest_email, title, start_time, end_time, meet_link)

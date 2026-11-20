@@ -3,6 +3,7 @@ import { AboutView } from "../views/about/AboutView";
 import { HomeView } from "../views/home/HomeView";
 import { NotFoundView } from "../views/not-found/NotFoundView";
 import { TasksView } from "../views/tasks/TasksView";
+import { UsageView } from "../views/usage/UsageView";
 import { routes } from "./paths";
 
 /**
@@ -15,6 +16,7 @@ export function AppRoutes() {
     <Routes>
       <Route path={routes.home} element={<HomeView />} />
       <Route path={routes.tasks} element={<TasksView />} />
+      <Route path={routes.usage} element={<UsageView />} />
       <Route path={routes.about} element={<AboutView />} />
       <Route path="*" element={<NotFoundView />} />
     </Routes>

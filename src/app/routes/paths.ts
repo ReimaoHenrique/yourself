@@ -5,6 +5,7 @@
 export const routes = {
   home: "/",
   tasks: "/tasks",
+  usage: "/usage",
   about: "/about",
 } as const;
 

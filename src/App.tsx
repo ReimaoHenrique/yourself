@@ -5,6 +5,7 @@ import "./App.css";
 const NAV = [
   { to: routes.home, label: "Início", end: true },
   { to: routes.tasks, label: "Tarefas", end: false },
+  { to: routes.usage, label: "Uso de apps", end: false },
   { to: routes.about, label: "Arquitetura", end: false },
 ];
 

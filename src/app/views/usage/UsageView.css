@@ -1,0 +1,126 @@
+.usage-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.usage-header h1 {
+  margin-bottom: 4px;
+}
+
+.usage-header select {
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.06);
+  color: inherit;
+  font-size: 0.9rem;
+}
+
+.usage-permission {
+  display: grid;
+  gap: 12px;
+  justify-items: start;
+  background: rgba(36, 200, 219, 0.08);
+  border: 1px solid rgba(36, 200, 219, 0.3);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.usage-permission p {
+  margin: 0;
+}
+
+.usage-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: rgba(36, 200, 219, 0.12);
+  border: 1px solid rgba(36, 200, 219, 0.35);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 24px;
+}
+
+.usage-summary strong {
+  color: #24c8db;
+  font-size: 1.4rem;
+}
+
+.usage-view h2 {
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  opacity: 0.7;
+}
+
+.usage-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 20px;
+  display: grid;
+  gap: 8px;
+}
+
+.usage-list li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 10px 14px;
+}
+
+.usage-rank {
+  opacity: 0.5;
+  width: 1.5rem;
+  text-align: right;
+}
+
+.usage-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 9px;
+  flex-shrink: 0;
+}
+
+.usage-icon.fallback {
+  display: grid;
+  place-items: center;
+  background: rgba(36, 200, 219, 0.2);
+  color: #24c8db;
+  font-weight: 700;
+}
+
+.usage-info {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+}
+
+.usage-label {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.usage-package,
+.usage-details {
+  font-size: 0.75rem;
+  opacity: 0.55;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.usage-time {
+  color: #24c8db;
+  font-weight: 600;
+  white-space: nowrap;
+}
